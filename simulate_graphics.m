@@ -4,7 +4,25 @@ simOut= out;
 
 posTS = simOut.logsout.get("X_icrf").Values;
 velTS = simOut.logsout.get("V_icrf").Values;
-attTS = simOut.logsout.get("q_icrf2b").Values;
+
+attTS = simOut.logsout.get("q_icrf2b_star_tracker").Values;
+
+attEmpty = simOut.logsout.get("q_icrf2b").Values;
+
+attEmpty.Data = interp1(attTS.Time,attTS.Data,velTS.Time);
+attEmpty.Time = velTS.Time;
+attTS = attEmpty;
+
+
+% attEmpty = simOut.logsout.get("q_icrf2b").Values;
+% 
+% data_size = size(attTS.Data);
+% 
+% attEmpty.Data(1:data_size(1),1:data_size(2)) = attTS.Data;
+% 
+% attTS = attEmpty;
+
+% attTS = simOut.logsout.get("q_icrf2b").Values;
 
 % Convert to timetables
 posTT = timeseries2timetable(posTS);
