@@ -44,7 +44,7 @@ gyro.sigma_v = 1e-3;  %%% this is standard deviation be careful
 %% star tracker
 
 %ref frame https://www.mdpi.com/1424-8220/18/9/3106 % z along the boresign
-star.boresight_b = [0;0;1];  %% z
+star.boresight_b = [0;1;0];  %% z
 
 star.boresight_b = star.boresight_b/norm(star.boresight_b);
 
