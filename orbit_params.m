@@ -62,8 +62,8 @@ star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 star.sun_avoidance_angle_deg = 20;
 star.earth_avoidance_angle_deg = 10;
 
-star.sigma_bore = 50;  %% 25
-star.sigma_cross = 6; %%% arcsec sigma  3
+star.sigma_bore = 25;  %% 25
+star.sigma_cross = 3; %%% arcsec sigma  3
 
 star.fixed_bias = 5; %%%% fixed bias
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
