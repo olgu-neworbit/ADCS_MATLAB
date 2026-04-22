@@ -1,6 +1,6 @@
 
 %%Constant
-altitude = 150e3;
+altitude = 250e3;
 
 earth.R = 6371e3;
 
@@ -29,6 +29,7 @@ NEO.inertia = [30.5, 0, 0; 0, 20, 0; 0, 0, 40.2];
 
 %initialise
 q_icrf2b_initial = [0; -0.38; 0.92; 0];
+q_icrf2b_initial = q_icrf2b_initial/norm(q_icrf2b_initial);
 omega_icrf2b_initial = [0;0;0];
 
 Ts = 1;
@@ -36,15 +37,19 @@ Ts = 1;
 
 
 %% gyro
-gyro.Ts = 5;
-gyro.sigma_u = 1e-3;
-gyro.sigma_v = 1e-3;  %%% this is standard deviation be careful
+gyro.Ts = 1;
+gyro.sigma_u = 1e-6;  %% bias
+gyro.sigma_v = 1e-4;  %%% this is standard deviation be careful  %% noise
+gyro.seed  = 2134;
+
+gyro2 = gyro;
+gyro2.seed = 2135;
 
 
 %% star tracker
 
 %ref frame https://www.mdpi.com/1424-8220/18/9/3106 % z along the boresign
-star.boresight_b = [0;1;0];  %% z
+star.boresight_b = [0;1;1];  %% z
 
 star.boresight_b = star.boresight_b/norm(star.boresight_b);
 
@@ -56,5 +61,30 @@ star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 star.sun_avoidance_angle_deg = 20;
 star.earth_avoidance_angle_deg = 10;
 
-star.sigma_bore = 200;
-star.sigma_cross = 0;
+star.sigma_bore = 500;  %% 25
+star.sigma_cross = 500; %%% arcsec sigma  3
+
+star.fixed_bias = 5; %%%% fixed bias
+star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
+star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
+
+star.max_slew = 10; %%%% 
+
+star.Ts = 1;
+star.seed = 2133;
+star_Ts = star.Ts;
+
+
+
+
+%%EKF
+q_initial  = q_icrf2b_initial;
+x_initial = zeros(6,1); 
+
+P_initial = blkdiag(eye(3) * gyro.sigma_v ,eye(3) * gyro.sigma_u);  %% initial state estiatme covar
+
+Q_c = blkdiag(eye(3) * gyro.sigma_v ,eye(3) * gyro.sigma_u * 1000);  %% process noise covar
+
+R_k_star = blkdiag(star.sigma_cross,star.sigma_cross,star.sigma_bore) * (1/3600) * pi/180;   %%% meas noise in the start trcker frame
+
+Kalman.Ts = 0.2;
