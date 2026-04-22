@@ -38,7 +38,7 @@ Ts = 1;
 
 %% gyro
 gyro.Ts = 1;
-gyro.sigma_u = 1e-6;  %% bias
+gyro.sigma_u = 3e-5;  %% bias
 gyro.sigma_v = 1e-4;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 
@@ -61,8 +61,8 @@ star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 star.sun_avoidance_angle_deg = 20;
 star.earth_avoidance_angle_deg = 10;
 
-star.sigma_bore = 500;  %% 25
-star.sigma_cross = 500; %%% arcsec sigma  3
+star.sigma_bore = 50;  %% 25
+star.sigma_cross = 6; %%% arcsec sigma  3
 
 star.fixed_bias = 5; %%%% fixed bias
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
@@ -80,11 +80,11 @@ star_Ts = star.Ts;
 %%EKF
 q_initial  = q_icrf2b_initial;
 x_initial = zeros(6,1); 
+Kalman.Ts = 1;
 
-P_initial = blkdiag(eye(3) * gyro.sigma_v ,eye(3) * gyro.sigma_u);  %% initial state estiatme covar
+P_initial = blkdiag(eye(3) * gyro.sigma_v^2 ,eye(3) * gyro.sigma_u^2) * 1e-6;  %% initial state estiatme covar
 
-Q_c = blkdiag(eye(3) * gyro.sigma_v ,eye(3) * gyro.sigma_u * 1000);  %% process noise covar
+Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 * Kalman.Ts);  %% process noise covar
 
-R_k_star = blkdiag(star.sigma_cross,star.sigma_cross,star.sigma_bore) * (1/3600) * pi/180;   %%% meas noise in the start trcker frame
+R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * (1/3600) * pi/180;   %%% meas noise in the start trcker frame
 
-Kalman.Ts = 0.2;
