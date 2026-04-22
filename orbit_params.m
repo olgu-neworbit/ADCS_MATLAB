@@ -3,6 +3,7 @@
 altitude = 250e3;
 
 earth.R = 6371e3;
+moon.R = 1740e3;
 
 semi_major = earth.R + altitude;
 eccentricity = 0;
@@ -76,7 +77,7 @@ star_Ts = star.Ts;
 
 
 %%%
-sun.Ts = 0.2;
+sun.Ts = 0.5;
 sun.FOV_half_angle_degrees = 60;  %%% degrees assume square FOV
 sun.sigma = 0.2;  %% degrees
 sun.axes = zeros(3,3,6);
@@ -99,7 +100,8 @@ sun.axes(:,:,6) = [0,0,-1;
                    0,1,0;
                    1,0,0];
 sun.dcm_sun2b = sun.axes;
-
+sun.noise_seeds = randi([1,1000],3,1,6);
+sun.Ts = 2;
 
 
 
