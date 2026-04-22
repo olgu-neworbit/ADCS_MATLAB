@@ -37,7 +37,7 @@ Ts = 1;
 
 
 %% gyro
-gyro.Ts = 1;
+gyro.Ts = 0.5;
 gyro.sigma_u = 3e-5;  %% bias
 gyro.sigma_v = 1e-4;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
@@ -75,16 +75,42 @@ star.seed = 2133;
 star_Ts = star.Ts;
 
 
+%%%
+sun.Ts = 0.2;
+sun.FOV_half_angle_degrees = 60;  %%% degrees assume square FOV
+sun.sigma = 0.2;  %% degrees
+sun.axes = zeros(3,3,6);
+sun.axes(:,:,1) = [1,0,0;
+                   0,1,0;
+                   0,0,1];
+sun.axes(:,:,2) = [1,0,0;
+                   0,1,0;
+                   0,0,-1];
+sun.axes(:,:,3) = [1,0,0;
+                   0,0,1;
+                   0,1,0];
+sun.axes(:,:,4) = [1,0,0;
+                   0,0,-1;
+                   0,1,0];
+sun.axes(:,:,5) = [0,0,1;
+                   0,1,0;
+                   1,0,0];
+sun.axes(:,:,6) = [0,0,-1;
+                   0,1,0;
+                   1,0,0];
+sun.dcm_sun2b = sun.axes;
+
+
 
 
 %%EKF
 q_initial  = q_icrf2b_initial;
 x_initial = zeros(6,1); 
-Kalman.Ts = 1;
+Kalman.Ts = gyro.Ts;
 
 P_initial = blkdiag(eye(3) * gyro.sigma_v^2 ,eye(3) * gyro.sigma_u^2) * 1e-6;  %% initial state estiatme covar
 
-Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 * Kalman.Ts);  %% process noise covar
+Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2);  %% process noise covar
 
 R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * (1/3600) * pi/180;   %%% meas noise in the start trcker frame
 
