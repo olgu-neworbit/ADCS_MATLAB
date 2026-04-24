@@ -36,7 +36,7 @@ omega_icrf2b_initial = [0;0;0];
 
 %% times
 Ts = 10;
-gyro.Ts = 0.5;
+gyro.Ts = 0.25;
 star.Ts = 1;
 sun.Ts = 1;
 mag.Ts = 1;
@@ -71,7 +71,7 @@ star.earth_avoidance_angle_deg = 10;
 star.sigma_bore = 25;  %% 25
 star.sigma_cross = 3; %%% arcsec sigma  3
 
-star.fixed_bias = 5; %%%% fixed bias
+star.fixed_bias = 1; %%%% fixed bias
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -85,7 +85,7 @@ star_Ts = star.Ts;
 %%%
 % sun.Ts = 0.5;
 sun.FOV_half_angle_degrees = 60;  %%% degrees assume square FOV
-sun.sigma = 0.00001;  %% degrees??
+sun.sigma = 0.01;  %% radians from small angle approximation satisfying the vector error
 sun.axes = zeros(3,3,6);
 sun.axes(:,:,1) = [1,0,0;
                    0,1,0;
@@ -127,13 +127,13 @@ mag.bias = ((rand(3,1)) - 0.5) * 10;
 % mag.Ts = 1;
 
 mag.scales = ((rand(3,3) - 0.5) /100 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
-mag.sigma  = 5;
+mag.sigma  = 100;
 mag.co_var = ones(3,1) * mag.sigma^2;
 mag.noise_seeds = randi([1,1000],3,1);
 
 mag2 = mag;
 mag2.scales = ((rand(3,3) - 0.5) /100 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
-mag2.sigma  = 5;
+mag2.sigma  = 100;
 mag2.co_var = ones(3,1) * mag2.sigma^2;
 mag2.noise_seeds = randi([1,1000],3,1);
 
