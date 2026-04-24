@@ -36,10 +36,11 @@ omega_icrf2b_initial = [0;0;0];
 
 %% times
 Ts = 10;
-gyro.Ts = 1;
+gyro.Ts = 0.5;
 star.Ts = 1;
 sun.Ts = 1;
 mag.Ts = 1;
+Kalman.Ts = gyro.Ts;
 
 
 %% gyro
@@ -116,23 +117,23 @@ mag.z = [1;0;0];
 mag.dcm_mag2b = [mag.x,mag.y,mag.z];
 
 
-mag.fixed_misalign = 1 * 0; %%%% degrees
+mag.fixed_misalign = 0.01; %%%% degrees
 mag.fixed_misalign_vector = ((rand(3,1)) - 0.5) * 2;
 mag.fixed_misalign_vector = (mag.fixed_misalign_vector)/norm(mag.fixed_misalign_vector);
-mag.fixed_misalign_dcm = quat2dcm([cosd(1);mag.fixed_misalign_vector * sind(mag.fixed_misalign)]');
-mag.bias = ((rand(3,1)) - 0.5) * 500 * 0;
+mag.fixed_misalign_dcm = quat2dcm([cosd(mag.fixed_misalign);mag.fixed_misalign_vector * sind(mag.fixed_misalign)]');
+mag.bias = ((rand(3,1)) - 0.5) * 10;
 
 
 % mag.Ts = 1;
 
-mag.scales = (0.0001*(rand(3,3) - 0.5) /50 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
-mag.sigma  = 100 * 0.001;
+mag.scales = ((rand(3,3) - 0.5) /100 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
+mag.sigma  = 5;
 mag.co_var = ones(3,1) * mag.sigma^2;
 mag.noise_seeds = randi([1,1000],3,1);
 
 mag2 = mag;
-mag2.scales = (0.0001*(rand(3,3) - 0.5) /50 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
-mag2.sigma  = 100 * 0.0001;
+mag2.scales = ((rand(3,3) - 0.5) /100 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
+mag2.sigma  = 5;
 mag2.co_var = ones(3,1) * mag2.sigma^2;
 mag2.noise_seeds = randi([1,1000],3,1);
 
@@ -146,7 +147,7 @@ Kalman.Ts = gyro.Ts;
 
 P_initial = blkdiag(eye(3) * gyro.sigma_v^2 ,eye(3) * gyro.sigma_u^2) * 1e-6;  %% initial state estiatme covar
 
-Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar
+% Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar
 
 R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * (1/3600) * pi/180;   %%% meas noise in the start trcker frame
 
