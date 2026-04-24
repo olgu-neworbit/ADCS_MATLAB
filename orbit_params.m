@@ -149,6 +149,6 @@ P_initial = blkdiag(eye(3) * gyro.sigma_v^2 ,eye(3) * gyro.sigma_u^2) * 1e-6;  %
 
 % Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar
 
-R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * (1/3600) * pi/180;   %%% meas noise in the start trcker frame
+R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * ((1/3600) * pi/180)^2;   %%% meas noise in the start trcker frame
 
 % R_k_sun_single = eye(3) * sun.sigma^2;
