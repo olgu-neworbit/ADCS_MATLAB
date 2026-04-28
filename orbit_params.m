@@ -36,7 +36,7 @@ omega_icrf2b_initial = [0;0;0];
 
 %% times
 Ts = 10;
-gyro.Ts = 0.25;
+gyro.Ts = 0.5;
 star.Ts = 1;
 sun.Ts = 1;
 mag.Ts = 1;
