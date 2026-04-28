@@ -1,6 +1,6 @@
 
 %%Constant
-altitude = 250e3;
+altitude = 600e3;
 
 earth.R = 6371e3;
 moon.R = 1740e3;
@@ -45,7 +45,7 @@ Kalman.Ts = gyro.Ts;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 3e-5;  %% bias
+gyro.sigma_u = 6e-5;  %% bias
 gyro.sigma_v = 1e-4;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 
@@ -56,7 +56,7 @@ gyro2.seed = 2135;
 %% star tracker
 
 %ref frame https://www.mdpi.com/1424-8220/18/9/3106 % z along the boresign
-star.boresight_b = [0;1;1];  %% z
+star.boresight_b = [0;1;-1];  %% z
 
 star.boresight_b = star.boresight_b/norm(star.boresight_b);
 
@@ -65,27 +65,34 @@ star.y = cross(star.boresight_b,star.x)/norm(cross(star.boresight_b,star.x));
 
 star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 
-star.sun_avoidance_angle_deg = 20;
-star.earth_avoidance_angle_deg = 10;
+star.sun_avoidance_angle_deg = 25;
+star.earth_avoidance_angle_deg = 20;
 
-star.sigma_bore = 25;  %% 25
+
+%%% random noise expected values semi optimistic. Dependant on slew : x2
+%%% per deg/s of slew cross and x3 deg/s for about boresight
+star.sigma_bore = 15;  %% 15  
 star.sigma_cross = 3; %%% arcsec sigma  3
 
-star.fixed_bias = 1; %%%% fixed bias
+star.fixed_bias = 10; %%%% fixed bias default = 10. +2 for 30 degree of temp drift, 
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
-star.max_slew = 10; %%%% 
+star.max_slew = 1; %%%% 
 
 % star.Ts = 1;
 star.seed = 2133;
 star_Ts = star.Ts;
 
+%%% star thermal <0.055 arcsec/°C from hydra multi head
+
+
+
 
 %%%
 % sun.Ts = 0.5;
 sun.FOV_half_angle_degrees = 60;  %%% degrees assume square FOV
-sun.sigma = 0.01;  %% radians from small angle approximation satisfying the vector error
+sun.sigma = deg2rad(0.5);  %% radians from small angle approximation satisfying the vector error
 sun.axes = zeros(3,3,6);
 sun.axes(:,:,1) = [1,0,0;
                    0,1,0;
@@ -105,7 +112,16 @@ sun.axes(:,:,5) = [0,0,1;
 sun.axes(:,:,6) = [0,0,-1;
                    0,1,0;
                    1,0,0];
+sun.dcm_sun2b_ideal = sun.axes;
+
+sun.bias = deg2rad(0.1); %% radians
+for ii = 1:length(sun.axes)
+    rand_vector = rand(3,1);
+    rand_error = rand_vector/norm(rand_vector) * sun.bias * 1/2;
+    sun.axes(:,:,ii) =  quat2dcm(  ([1;rand_error]/norm([1;rand_error]))'   ) * sun.axes(:,:,ii);
+end
 sun.dcm_sun2b = sun.axes;
+
 sun.noise_seeds = randi([1,1000],3,1,6);
 % sun.Ts = 2;
 
@@ -117,23 +133,22 @@ mag.z = [1;0;0];
 mag.dcm_mag2b = [mag.x,mag.y,mag.z];
 
 
-mag.fixed_misalign = 0.01; %%%% degrees
+mag.fixed_misalign = 0.1; %%%% degrees
 mag.fixed_misalign_vector = ((rand(3,1)) - 0.5) * 2;
 mag.fixed_misalign_vector = (mag.fixed_misalign_vector)/norm(mag.fixed_misalign_vector);
-mag.fixed_misalign_dcm = quat2dcm([cosd(mag.fixed_misalign);mag.fixed_misalign_vector * sind(mag.fixed_misalign)]');
-mag.bias = ((rand(3,1)) - 0.5) * 10;
+mag.fixed_misalign_dcm = quat2dcm([cosd(mag.fixed_misalign);mag.fixed_misalign_vector * sind(mag.fixed_misalign) * 0.5]');
+mag.bias = ((rand(3,1)) - 0.5) * 50;
 
 
 % mag.Ts = 1;
-
-mag.scales = ((rand(3,3) - 0.5) /100 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
-mag.sigma  = 100;
+mag.scale_fac = 0.01;
+mag.scales = ((rand(3,3) - 0.5) * 2 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] * mag.scale_fac + eye(3))^-1;   %% 1 percent
+mag.sigma  = 40;
 mag.co_var = ones(3,1) * mag.sigma^2;
 mag.noise_seeds = randi([1,1000],3,1);
 
 mag2 = mag;
-mag2.scales = ((rand(3,3) - 0.5) /100 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] + eye(3))^-1;   %% 1 percent
-mag2.sigma  = 100;
+mag2.scales = ((rand(3,3) - 0.5) * 2 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] * mag.scale_fac + eye(3))^-1;   %% 1 percent
 mag2.co_var = ones(3,1) * mag2.sigma^2;
 mag2.noise_seeds = randi([1,1000],3,1);
 
