@@ -40,14 +40,15 @@ gyro.Ts = 0.5;
 star.Ts = 1;
 sun.Ts = 1;
 mag.Ts = 1;
-Kalman.Ts = gyro.Ts;
+Kalman.Ts = 0.5;
 
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 1.8e-7;  %% bias
-gyro.sigma_v = 1.8e-4;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 6.4e-9/3 * sqrt(2);  %% bias  both deg/s
+gyro.sigma_v = 1e-4/3 * sqrt(2);  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
+gyro.bias = [0.00,0.00,0.00]';
 
 gyro2 = gyro;
 gyro2.seed = 2135;
@@ -56,7 +57,7 @@ gyro2.seed = 2135;
 %% star tracker
 
 %ref frame https://www.mdpi.com/1424-8220/18/9/3106 % z along the boresign
-star.boresight_b = [0;0;-1];  %% z
+star.boresight_b = [1;1;-1];  %% z
 
 star.boresight_b = star.boresight_b/norm(star.boresight_b);
 
@@ -71,8 +72,8 @@ star.earth_avoidance_angle_deg = 20;
 
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
-star.sigma_bore = 45;  %% 15  
-star.sigma_cross = 6; %%% arcsec sigma  3
+star.sigma_bore = 12;  %% 15  
+star.sigma_cross = 3; %%% arcsec sigma ... 3
 
 star.fixed_bias = 0; %%%% fixed bias default = 10. +2 for 30 degree of temp drift, 
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
