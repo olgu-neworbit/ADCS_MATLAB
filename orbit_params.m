@@ -29,9 +29,9 @@ NEO.mass = 230;
 NEO.inertia = [30.5, 0, 0; 0, 20, 0; 0, 0, 40.2];
 
 %initialise
-q_icrf2b_initial = [0; -0.38; 0.92; 0];
+q_icrf2b_initial = [1; 0; 0; 0];
 q_icrf2b_initial = q_icrf2b_initial/norm(q_icrf2b_initial);
-omega_icrf2b_initial = [0;0;0];
+omega_icrf2b_initial = [0.01;0.01;0.01];
 
 
 %% times
@@ -45,8 +45,8 @@ Kalman.Ts = gyro.Ts;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 6e-5;  %% bias
-gyro.sigma_v = 1e-4;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 1.8e-7;  %% bias
+gyro.sigma_v = 1.8e-4;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 
 gyro2 = gyro;
@@ -56,7 +56,7 @@ gyro2.seed = 2135;
 %% star tracker
 
 %ref frame https://www.mdpi.com/1424-8220/18/9/3106 % z along the boresign
-star.boresight_b = [0;1;-1];  %% z
+star.boresight_b = [0;0;-1];  %% z
 
 star.boresight_b = star.boresight_b/norm(star.boresight_b);
 
@@ -71,10 +71,10 @@ star.earth_avoidance_angle_deg = 20;
 
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
-star.sigma_bore = 15;  %% 15  
-star.sigma_cross = 3; %%% arcsec sigma  3
+star.sigma_bore = 45;  %% 15  
+star.sigma_cross = 6; %%% arcsec sigma  3
 
-star.fixed_bias = 10; %%%% fixed bias default = 10. +2 for 30 degree of temp drift, 
+star.fixed_bias = 0; %%%% fixed bias default = 10. +2 for 30 degree of temp drift, 
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -160,9 +160,9 @@ q_initial = q_icrf2b_initial;
 x_initial = zeros(6,1); 
 Kalman.Ts = gyro.Ts;
 
-P_initial = blkdiag(eye(3) * gyro.sigma_v^2 ,eye(3) * gyro.sigma_u^2) * 1e-6;  %% initial state estiatme covar
+P_initial = blkdiag(eye(3) * gyro.sigma_v^2 * 1e-6 ,eye(3) * gyro.sigma_u^2 * 1e4);  %% initial state estiatme covar
 
-% Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar
+Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar not used anymore
 
 R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * ((1/3600) * pi/180)^2;   %%% meas noise in the start trcker frame
 
