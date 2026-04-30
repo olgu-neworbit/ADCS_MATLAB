@@ -36,8 +36,8 @@ omega_icrf2b_initial = [0.01;0.01;0.01];
 
 %% times
 Ts = 10;
-gyro.Ts = 0.5;
-star.Ts = 1;
+gyro.Ts = 0.1;
+star.Ts = 16;
 sun.Ts = 1;
 mag.Ts = 1;
 Kalman.Ts = 0.5;
@@ -72,8 +72,8 @@ star.earth_avoidance_angle_deg = 20;
 
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
-star.sigma_bore = 12;  %% 15  
-star.sigma_cross = 3; %%% arcsec sigma ... 3
+star.sigma_bore = 7;  %% 15  
+star.sigma_cross = 2; %%% arcsec sigma ... 3
 
 star.fixed_bias = 0; %%%% fixed bias default = 10. +2 for 30 degree of temp drift, 
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
@@ -159,9 +159,8 @@ mag.R_k = eye(3) * mag.sigma^2;
 % q_initial  = quatmultiply( q_icrf2b_initial', [cosd(20),sind(20)*([1,2,5]/norm([1,2,5]))])';
 q_initial = q_icrf2b_initial;
 x_initial = zeros(6,1); 
-Kalman.Ts = gyro.Ts;
 
-P_initial = blkdiag(eye(3) * gyro.sigma_v^2 * 1e-6 ,eye(3) * gyro.sigma_u^2 * 1e4);  %% initial state estiatme covar
+P_initial = blkdiag(eye(3) * gyro.sigma_v^2 * 1e4 ,eye(3) * gyro.sigma_u^2 * 1e5);  %% initial state estiatme covar
 
 Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar not used anymore
 
