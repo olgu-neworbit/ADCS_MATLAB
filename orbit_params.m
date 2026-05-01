@@ -45,8 +45,8 @@ Kalman.Ts = 0.5;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 6.4e-9/3 * sqrt(2);  %% bias  both deg/s
-gyro.sigma_v = 1e-4/3 * sqrt(2);  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 4.6296e-06 * 1e-5;  %% bias  both deg/s
+gyro.sigma_v = 1.6e-3 * 0.1;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 gyro.bias = [0.00,0.00,0.00]';
 
@@ -66,16 +66,16 @@ star.y = cross(star.boresight_b,star.x)/norm(cross(star.boresight_b,star.x));
 
 star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 
-star.sun_avoidance_angle_deg = 25;
-star.earth_avoidance_angle_deg = 20;
+star.sun_avoidance_angle_deg = 35;
+star.earth_avoidance_angle_deg = 22;
 
 
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
-star.sigma_bore = 7;  %% 15  
-star.sigma_cross = 2; %%% arcsec sigma ... 3
+star.sigma_bore = 70/3;  %% 15  
+star.sigma_cross = 11/3; %%% arcsec sigma ... 3
 
-star.fixed_bias = 0; %%%% fixed bias default = 10. +2 for 30 degree of temp drift, 
+star.fixed_bias = (0.017 * 3600 + 30 * 1.5) * 0.5; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -85,10 +85,10 @@ star.max_slew = 1; %%%%
 star.seed = 2133;
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0;
 star.HF_def_tau = 0.01; %%% def tau tau at 1 deg /sec total slew
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0;
 star.LF_def_tau = 20;
 
 
@@ -174,3 +174,14 @@ Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% proces
 R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * ((1/3600) * pi/180)^2;   %%% meas noise in the start trcker frame
 
 % R_k_sun_single = eye(3) * sun.sigma^2;
+
+
+sigma_st_rad = sigma_st/3600 * pi/180;       % arcsec → rad
+sigma_v_rad  = gyro.sigma_v * pi/180 /sqrt(2);         % deg/√s → rad/√s
+sigma_u_rad  = 4.6296e-15 * pi/180;         % deg/s/√s → rad/s/√s
+
+variance = sigma_st_rad * sigma_v_rad * sqrt(Kalman.Ts) * ...
+           sqrt(1 + (sigma_u_rad * sigma_st_rad / sigma_v_rad^3) * sqrt(Kalman.Ts));
+
+sigma_theta_rad    = sqrt(variance);
+sigma_theta_arcsec = sigma_theta_rad * 180/pi * 3600
