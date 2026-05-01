@@ -36,8 +36,8 @@ omega_icrf2b_initial = [0.01;0.01;0.01];
 
 %% times
 Ts = 10;
-gyro.Ts = 0.1;
-star.Ts = 16;
+gyro.Ts = 0.5;
+star.Ts = 1;
 sun.Ts = 1;
 mag.Ts = 1;
 Kalman.Ts = 0.5;
@@ -84,6 +84,13 @@ star.max_slew = 1; %%%%
 % star.Ts = 1;
 star.seed = 2133;
 star_Ts = star.Ts;
+
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180;
+star.HF_def_tau = 0.01; %%% def tau tau at 1 deg /sec total slew
+
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180;
+star.LF_def_tau = 20;
+
 
 %%% star thermal <0.055 arcsec/°C from hydra multi head
 
