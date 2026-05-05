@@ -45,8 +45,8 @@ Kalman.Ts = 0.5;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 4.6296e-06 * 1e-5;  %% bias  both deg/s
-gyro.sigma_v = 1.6e-3 * 0.1;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 4.6296e-06;  %% bias  both deg/s
+gyro.sigma_v = 1.6e-3;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 gyro.bias = [0.00,0.00,0.00]';
 
@@ -72,10 +72,10 @@ star.earth_avoidance_angle_deg = 22;
 
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
-star.sigma_bore = 70/3;  %% 15  
-star.sigma_cross = 11/3; %%% arcsec sigma ... 3
+star.sigma_bore = 70/3 ;  %% 15  
+star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 + 30 * 1.5) * 0.5; %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 + 30 * 1.5); %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -85,10 +85,10 @@ star.max_slew = 1; %%%%
 star.seed = 2133;
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1;
 star.HF_def_tau = 0.01; %%% def tau tau at 1 deg /sec total slew
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 1;
 star.LF_def_tau = 20;
 
 
@@ -175,13 +175,29 @@ R_k_star = blkdiag(star.sigma_cross^2,star.sigma_cross^2,star.sigma_bore^2) * ((
 
 % R_k_sun_single = eye(3) * sun.sigma^2;
 
-
+sigma_st = sqrt( (star.sigma_bore^2 + star.sigma_cross ^2 * 2)/3 );
 sigma_st_rad = sigma_st/3600 * pi/180;       % arcsec → rad
 sigma_v_rad  = gyro.sigma_v * pi/180 /sqrt(2);         % deg/√s → rad/√s
-sigma_u_rad  = 4.6296e-15 * pi/180;         % deg/s/√s → rad/s/√s
-
+sigma_u_rad  = gyro.sigma_u * pi/180 /sqrt(2);         % deg/s/√s → rad/s/√s
+% 
 variance = sigma_st_rad * sigma_v_rad * sqrt(Kalman.Ts) * ...
-           sqrt(1 + (sigma_u_rad * sigma_st_rad / sigma_v_rad^3) * sqrt(Kalman.Ts));
+           sqrt(1 + (1e-9 * sigma_u_rad * sigma_st_rad / sigma_v_rad^3) * sqrt(Kalman.Ts));
 
 sigma_theta_rad    = sqrt(variance);
 sigma_theta_arcsec = sigma_theta_rad * 180/pi * 3600
+
+
+
+%%% other
+Su = sigma_u_rad * (Kalman.Ts)^1.5 /sigma_st_rad;
+Sv = sigma_v_rad * (Kalman.Ts)^0.5 / sigma_st_rad;
+Se = 0;
+
+gamma = sqrt(1 + Se^2 + 0.25 * Sv^2 + 1/48 * Su^2);
+si = gamma + 0.25 * Su + 1/2 * sqrt( 2 * gamma * Su + Sv^2 + 1/3 * Su^2);
+sigma_theta_rad_2 = sigma_st_rad * sqrt(1 - si^-2);
+sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
+
+
+sigma_theta_rad_3 = sigma_st_rad * sqrt(-1 + si^2);
+sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
