@@ -75,7 +75,7 @@ star.earth_avoidance_angle_deg = 22;
 star.sigma_bore = 70/3 ;  %% 15  
 star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 + 30 * 1.5); %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 + 5 * 1.5) * 0; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -85,10 +85,10 @@ star.max_slew = 1; %%%%
 star.seed = 2133;
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0;
 star.HF_def_tau = 0.01; %%% def tau tau at 1 deg /sec total slew
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 1;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0;
 star.LF_def_tau = 20;
 
 
