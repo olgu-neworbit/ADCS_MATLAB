@@ -36,22 +36,36 @@ omega_icrf2b_initial = [0.01;0.01;0.01];
 
 %% times
 Ts = 10;
-gyro.Ts = 0.5;
-star.Ts = 1;
-sun.Ts = 1;
-mag.Ts = 1;
-Kalman.Ts = 0.5;
+gyro.Ts = 0.1;
+star.Ts = 0.2;
+sun.Ts = 0.5;
+mag.Ts = 0.2;
+Kalman.Ts = 0.1;
 
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 4.6296e-06;  %% bias  both deg/s
-gyro.sigma_v = 1.6e-3;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 4.6296e-06;  %% bias  both deg/s   using minimum reccomened value
+gyro.sigma_v = 2.5e-3;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 gyro.bias = [0.00,0.00,0.00]';
 
 gyro2 = gyro;
 gyro2.seed = 2135;
+
+%%%%
+gyro.fixed_bias = (1e-3) * 1; %%%% fixed bias radians
+gyro.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
+gyro.fixed_bias_vector = (gyro.fixed_bias_vector)/norm(gyro.fixed_bias_vector) * gyro.fixed_bias ;
+
+gyro2.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
+gyro2.fixed_bias_vector = (gyro2.fixed_bias_vector)/norm(gyro2.fixed_bias_vector) * gyro.fixed_bias ;
+
+
+
+
+%%% scale factor 500ppm
+%%% non linearing 20 ppm
 
 
 %% star tracker
@@ -75,21 +89,21 @@ star.earth_avoidance_angle_deg = 22;
 star.sigma_bore = 70/3 ;  %% 15  
 star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 + 5 * 1.5) * 0; %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 1; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
 star.max_slew = 1; %%%% 
 
 % star.Ts = 1;
-star.seed = 2133;
+star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0;
-star.HF_def_tau = 0.01; %%% def tau tau at 1 deg /sec total slew
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1;
+star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 degree per pixel
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0;
-star.LF_def_tau = 20;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 1;
+star.LF_def_tau = 20;  %% assume 20 deg of fov default is at 1 deg/s
 
 
 %%% star thermal <0.055 arcsec/°C from hydra multi head
@@ -99,9 +113,11 @@ star.LF_def_tau = 20;
 
 %%%
 % sun.Ts = 0.5;
-sun.FOV_half_angle_degrees = 60;  %%% degrees assume square FOV
-sun.sigma = deg2rad(0.5);  %% radians from small angle approximation satisfying the vector error
+sun.FOV_half_angle_degrees = 83;  %%% degrees assume square FOV
+sun.sigma = deg2rad(0.1);  %% radians from small angle approximation satisfying the vector error
 sun.axes = zeros(3,3,6);
+sun.noise_unit = ones(3,1,6);
+sun.noise_unit(3,:,:) = 0;
 sun.axes(:,:,1) = [1,0,0;
                    0,1,0;
                    0,0,1];
@@ -132,9 +148,10 @@ sun.dcm_sun2b = sun.axes;
 
 sun.noise_seeds = randi([1,1000],3,1,6);
 % sun.Ts = 2;
+%% 70 deg/s max xslew should bve fine
 
 
-%%%%magnetometer
+%%%%magnetometer  assume nad ne
 mag.x = [0;1;0];
 mag.y = [0;0;1];
 mag.z = [1;0;0];
@@ -151,7 +168,7 @@ mag.bias = ((rand(3,1)) - 0.5) * 50;
 % mag.Ts = 1;
 mag.scale_fac = 0.01;
 mag.scales = ((rand(3,3) - 0.5) * 2 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] * mag.scale_fac + eye(3))^-1;   %% 1 percent
-mag.sigma  = 40;
+mag.sigma  = 120;
 mag.co_var = ones(3,1) * mag.sigma^2;
 mag.noise_seeds = randi([1,1000],3,1);
 
