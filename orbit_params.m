@@ -37,7 +37,7 @@ omega_icrf2b_initial = [0.01;0.01;0.01];
 %% times
 Ts = 10;
 gyro.Ts = 0.1;
-star.Ts = 0.2;
+star.Ts = 0.5;
 sun.Ts = 0.5;
 mag.Ts = 0.2;
 Kalman.Ts = 0.1;
@@ -89,7 +89,7 @@ star.earth_avoidance_angle_deg = 22;
 star.sigma_bore = 70/3 ;  %% 15  
 star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 1; %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) ; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -138,7 +138,7 @@ sun.axes(:,:,6) = [0,0,-1;
                    1,0,0];
 sun.dcm_sun2b_ideal = sun.axes;
 
-sun.bias = deg2rad(0.1); %% radians
+sun.bias = deg2rad(0.1) ; %% radians
 for ii = 1:length(sun.axes)
     rand_vector = rand(3,1);
     rand_error = rand_vector/norm(rand_vector) * sun.bias * 1/2;
@@ -162,11 +162,11 @@ mag.fixed_misalign = 0.1; %%%% degrees
 mag.fixed_misalign_vector = ((rand(3,1)) - 0.5) * 2;
 mag.fixed_misalign_vector = (mag.fixed_misalign_vector)/norm(mag.fixed_misalign_vector);
 mag.fixed_misalign_dcm = quat2dcm([cosd(mag.fixed_misalign);mag.fixed_misalign_vector * sind(mag.fixed_misalign) * 0.5]');
-mag.bias = ((rand(3,1)) - 0.5) * 50;
+mag.bias = ((rand(3,1)) - 0.5) * 50 ;
 
 
 % mag.Ts = 1;
-mag.scale_fac = 0.01;
+mag.scale_fac = 0.01 ;
 mag.scales = ((rand(3,3) - 0.5) * 2 .* [1,0.1,0.1;0.1,1,0.1;0.1,0.1,1] * mag.scale_fac + eye(3))^-1;   %% 1 percent
 mag.sigma  = 120;
 mag.co_var = ones(3,1) * mag.sigma^2;
@@ -217,4 +217,38 @@ sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
 
 
 sigma_theta_rad_3 = sigma_st_rad * sqrt(-1 + si^2);
+sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
+
+
+
+%%%%%    wahba
+%%% 1 sun
+b1 = [0.178;-0.9;-0.391];
+b1 = b1/norm(b1);
+sigma_1 = sun.sigma; %% rad
+
+b2 = [4700;-2600;2.8e4];
+
+sigma_2 = mag.sigma/norm(b2);
+b2 = b2/norm(b2);
+
+P_sigma_sigma = (sigma_2 ^2 * b1 * b1' + sigma_1^2 * b2 * b2') / norm(cross(b1,b2))^2 + sigma_1^2 * sigma_2^2 * cross(b1,b2) * cross(b1,b2)' / (sigma_1^2 + sigma_2^2) /norm(cross(b1,b2))^2;
+
+sqrt((P_sigma_sigma(1,1))) * 180/pi * 3600;
+sqrt((P_sigma_sigma(2,2))) * 180/pi * 3600;
+sqrt((P_sigma_sigma(3,3))) * 180/pi * 3600;
+
+
+a = 3;
+Su = sigma_u_rad * (Kalman.Ts)^1.5 /sqrt((P_sigma_sigma(a,a)));
+Sv = sigma_v_rad * (Kalman.Ts)^0.5 / sqrt((P_sigma_sigma(a,a)));
+Se = 0;
+
+gamma = sqrt(1 + Se^2 + 0.25 * Sv^2 + 1/48 * Su^2);
+si = gamma + 0.25 * Su + 1/2 * sqrt( 2 * gamma * Su + Sv^2 + 1/3 * Su^2);
+sigma_theta_rad_2 = sqrt((P_sigma_sigma(a,a))) * sqrt(1 - si^-2);
+sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
+
+
+sigma_theta_rad_3 = sqrt((P_sigma_sigma(a,a))) * sqrt(-1 + si^2);
 sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
