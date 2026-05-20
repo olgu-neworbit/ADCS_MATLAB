@@ -29,18 +29,18 @@ NEO.mass = 230;
 NEO.inertia = [30.5, 0, 0; 0, 20, 0; 0, 0, 40.2];
 
 %initialise
-q_icrf2b_initial = [1; 0; 0; 0];
+q_icrf2b_initial = [-0.495; -0.414; 0.587; 0.492];
 q_icrf2b_initial = q_icrf2b_initial/norm(q_icrf2b_initial);
-omega_icrf2b_initial = [0.01;0.01;0.01];
+omega_icrf2b_initial = [0.01;-0.01;0.01];
 
 
 %% times
-Ts = 10;
+Ts = 0.1;
 gyro.Ts = 0.1;
-star.Ts = 0.5;
-sun.Ts = 0.5;
-mag.Ts = 0.2;
-Kalman.Ts = 0.1;
+star.Ts = 1;
+sun.Ts = 1;
+mag.Ts = 1;
+Kalman.Ts = 1;
 
 
 %% gyro
@@ -252,3 +252,31 @@ sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
 
 sigma_theta_rad_3 = sqrt((P_sigma_sigma(a,a))) * sqrt(-1 + si^2);
 sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
+
+
+%%%% look at CW5000 of cubespace
+wheel.rated_momentum_mNms = 500;
+wheel.speed_at_rated_momentum_rads = 5200 * 2 * pi/60;
+wheel.I_II = wheel.rated_momentum_mNms / 1000 / wheel.speed_at_rated_momentum_rads;
+
+wheel.I = blkdiag(wheel.I_II /10,wheel.I_II /10, wheel.I_II );
+
+a = sqrt(2/3);
+d = a ;
+b = sqrt(1 - a^2);
+c = sqrt(1 - d^2);
+wheel.axes = [a,-a, 0, 0;
+              b, b, c, c;
+              0, 0, d,-d];
+
+
+%%% multiply by desired body moment or torque
+wheel.distribution_matrix = 0.5 * [ 1/a, b/(b^2 + c^2),   0;
+                                   -1/a, b/(b^2 + c^2),   0;
+                                      0, c/(b^2 + c^2), 1/d;
+                                      0, c/(b^2 + c^2),-1/d];
+wheel.max_speed = 8000 * 2 * pi/60; %% rad/s
+wheel.max_torque_Nm = 37e-3;
+
+wheel.omega_initial =  [5000,1000, -2000, 4000] * 2 * pi/60;
+wheel.tau = 0.1; %% seconds
