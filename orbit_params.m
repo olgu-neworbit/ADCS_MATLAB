@@ -5,6 +5,10 @@ altitude = 600e3;
 earth.R = 6371e3;
 moon.R = 1740e3;
 
+earth.Mass = 5.972e24;
+G = 6.674e-11;
+
+
 semi_major = earth.R + altitude;
 eccentricity = 0;
 inclination = 170;
@@ -278,5 +282,5 @@ wheel.distribution_matrix = 0.5 * [ 1/a, b/(b^2 + c^2),   0;
 wheel.max_speed = 8000 * 2 * pi/60; %% rad/s
 wheel.max_torque_Nm = 37e-3;
 
-wheel.omega_initial =  [5000,1000, -2000, 4000] * 2 * pi/60;
+wheel.omega_initial =  [600,600, 600, 600] * 2 * pi/60;
 wheel.tau = 0.1; %% seconds
