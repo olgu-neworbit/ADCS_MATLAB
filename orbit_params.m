@@ -39,8 +39,8 @@ omega_icrf2b_initial = [0.01;-0.01;0.01];
 
 
 %% times
-Ts = 0.1;
-gyro.Ts = 0.1;
+Ts = 0.5;
+gyro.Ts = 0.5;
 star.Ts = 1;
 sun.Ts = 1;
 mag.Ts = 1;
@@ -282,5 +282,43 @@ wheel.distribution_matrix = 0.5 * [ 1/a, b/(b^2 + c^2),   0;
 wheel.max_speed = 8000 * 2 * pi/60; %% rad/s
 wheel.max_torque_Nm = 37e-3;
 
-wheel.omega_initial =  [600,600, 600, 600] * 2 * pi/60;
-wheel.tau = 0.1; %% seconds
+wheel.bias = 600; % rpm
+wheel.omega_initial =  [wheel.bias,wheel.bias, wheel.bias, wheel.bias] * 2 * pi/60;
+wheel.tau = 0.5; %% seconds
+
+% desired h default
+h_default = zeros(3,1);
+for f = 1:4
+ h_default = h_default + wheel.omega_initial(f) *  wheel.I_II * wheel.axes(:,f);
+
+end
+
+%% magnetor torquers  base on CR0150
+mag_torque.axis_ideal = [1,0,0;
+                         0,1,0
+                         0,0,1];
+mag_torque.axis = mag_torque.axis_ideal;
+mag_torque.fixed_misalign = deg2rad(0.1);
+for ii = 1:3
+    misalign = rand(3,1);
+    mag_torque.axis(:,ii) = mag_torque.axis(:,ii) + mag_torque.fixed_misalign * misalign/norm(misalign);
+    mag_torque.axis(:,ii) = mag_torque.axis(:,ii)/norm(mag_torque.axis(:,ii));
+end
+
+mag_torque.max_dipole = 15;
+mag_torque.gain = 63;
+mag_torque.residual = 0.1 /100 * mag_torque.max_dipole;
+
+
+mag_torque.tau = 40e-3 ; %% seconds
+
+
+%% plotting approx model achieved from trial error
+mag_torque.res = 19.9;
+mag_torque.V_max = 5;
+mag_torque.I_max = mag_torque.V_max/mag_torque.res;
+% plot(linspace(0,5/19.9,1000),30 * tanh(63/28.6 * linspace(0,5/19.9 ,1000)))
+mag_torque.tanh_max = 30;
+mag_torque.tanh_gain = 63/28.6;
+%% current is input
+mag_torque.k = 0.003;
