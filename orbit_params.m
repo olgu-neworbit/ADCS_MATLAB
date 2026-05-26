@@ -1,6 +1,6 @@
 
 %%Constant
-altitude = 600e3;
+altitude = 280e3;
 
 earth.R = 6371e3;
 moon.R = 1740e3;
@@ -40,11 +40,11 @@ omega_icrf2b_initial = [0.01;-0.01;0.01];
 
 %% times
 Ts = 0.5;
-gyro.Ts = 0.5;
+gyro.Ts = 0.1;
 star.Ts = 1;
-sun.Ts = 1;
+sun.Ts = 0.5;
 mag.Ts = 1;
-Kalman.Ts = 1;
+Kalman.Ts = 0.1;
 
 
 %% gyro
@@ -321,4 +321,4 @@ mag_torque.I_max = mag_torque.V_max/mag_torque.res;
 mag_torque.tanh_max = 30;
 mag_torque.tanh_gain = 63/28.6;
 %% current is input
-mag_torque.k = 0.003;
+mag_torque.k = 0.005;
