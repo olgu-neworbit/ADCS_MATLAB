@@ -35,7 +35,7 @@ NEO.inertia = [30.5, 0, 0; 0, 20, 0; 0, 0, 40.2];
 %initialise
 q_icrf2b_initial = [-0.38; -0.3; 0.87; -0.06];
 q_icrf2b_initial = q_icrf2b_initial/norm(q_icrf2b_initial);
-omega_icrf2b_initial = [0.01;-0.01;0.01];
+omega_icrf2b_initial = [0.08;-0.02;0.06] *0 ;
 
 
 %% times
@@ -49,8 +49,8 @@ Kalman.Ts = 0.1;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 4.6296e-06;  %% bias  both deg/s   using minimum reccomened value
-gyro.sigma_v = 2.5e-3;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 4.6296e-06/2;  %% bias  both deg/s   using minimum reccomened value
+gyro.sigma_v = 1.3e-3;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 gyro.bias = [0.00,0.00,0.00]';
 
@@ -93,7 +93,7 @@ star.earth_avoidance_angle_deg = 22;
 star.sigma_bore = 70/3 ;  %% 15  
 star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 0 ; %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 0.1  ; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -103,10 +103,10 @@ star.max_slew = 1; %%%%
 star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1 ;
 star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 degree per pixel
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0.1 ;
 star.LF_def_tau = 20;  %% assume 20 deg of fov default is at 1 deg/s
 
 
@@ -354,3 +354,56 @@ drag_simin = timeseries(drag, t_sim_long);
 
 tracking.kp = 0.5;
 tracking.kd = 2;
+
+% regulation.kp = 0.2 ;
+% regulation_kp = 80;
+% regulation.kd = 100;
+
+
+
+wn_tar = 0.1 * 2 * pi;
+regulation.kp = diag(NEO.inertia) * wn_tar^2;
+
+regulation.kd = wn_tar * 2 * 0.5 * diag(NEO.inertia);
+
+regulation_kp = regulation.kp;
+
+fc = 0.01;
+Fs2 = 1/Kalman.Ts;
+n  = 1;                   
+[b,a] = butter(n, fc/(Fs2/2), 'low');
+[sos_adcs,g_adcs] = tf2sos(b,a);
+
+
+% A = [zeros(3), eye(3);
+%      zeros(3), zeros(3)];
+% 
+% B = [zeros(3);
+%      NEO.inertia \ eye(3)];
+% 
+% 
+% theta_max = deg2rad(1000 / 3600);     % acceptable attitude error, rad
+% omega_max = deg2rad(0.1);     % acceptable angular rate, rad/s
+% tau_max   = 5e-3;           % acceptable torque, Nm
+% 
+% Q = diag([1/theta_max^2, ...
+%           1/theta_max^2, ...
+%           1/theta_max^2, ...
+%           1/omega_max^2, ...
+%           1/omega_max^2, ...
+%           1/omega_max^2]);
+% 
+% R = diag([1/tau_max^2, ...
+%           1/tau_max^2, ...
+%           1/tau_max^2]);
+% 
+% [K,S,e] = lqr(A,B,Q,R);
+% 
+% 
+% q1 = [0.7071 0 0 0.7071]; q1 = q1/norm(q1);
+% q2 = [0.7071 0.7071 0 0]; q2 = q2/norm(q2);
+% 
+% dA = quat2dcm(q1) * quat2dcm(q2)';
+% dq = quat2dcm(   quatmultiply_olgu(    q1  , quatinv(q2)  ));
+% 
+% norm(dA - dq)  % should be ~1e-16
