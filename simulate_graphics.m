@@ -1,4 +1,4 @@
-% run your Simulink model
+ % run your Simulink model
 % simOut = sim("satellite_dynamics");
 simOut= out;
 

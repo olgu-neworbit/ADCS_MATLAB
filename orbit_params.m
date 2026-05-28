@@ -1,6 +1,6 @@
 
 %%Constant
-altitude = 280e3;
+altitude = 449e3;
 
 earth.R = 6371e3;
 moon.R = 1740e3;
@@ -11,16 +11,16 @@ G = 6.674e-11;
 
 semi_major = earth.R + altitude;
 eccentricity = 0;
-inclination = 170;
-RAAN = 0;
+inclination = 97.21;
+RAAN = 34.9;
 periapsis_arg = 0;
-true_anomaly = 10;
+true_anomaly = 45;
 
 %time
-year = 2020;
-month = 1;
-day = 1;
-hour = 12;
+year = 2026;
+month = 05;
+day = 21;
+hour = 0;
 minute = 0;
 second = 0;
 
@@ -33,13 +33,13 @@ NEO.mass = 230;
 NEO.inertia = [30.5, 0, 0; 0, 20, 0; 0, 0, 40.2];
 
 %initialise
-q_icrf2b_initial = [-0.495; -0.414; 0.587; 0.492];
+q_icrf2b_initial = [-0.38; -0.3; 0.87; -0.06];
 q_icrf2b_initial = q_icrf2b_initial/norm(q_icrf2b_initial);
 omega_icrf2b_initial = [0.01;-0.01;0.01];
 
 
 %% times
-Ts = 0.5;
+Ts = 0.1;
 gyro.Ts = 0.1;
 star.Ts = 1;
 sun.Ts = 0.5;
@@ -84,7 +84,7 @@ star.y = cross(star.boresight_b,star.x)/norm(cross(star.boresight_b,star.x));
 
 star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 
-star.sun_avoidance_angle_deg = 35;
+star.sun_avoidance_angle_deg = 35 * 0.01;
 star.earth_avoidance_angle_deg = 22;
 
 
@@ -93,7 +93,7 @@ star.earth_avoidance_angle_deg = 22;
 star.sigma_bore = 70/3 ;  %% 15  
 star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) ; %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 0 ; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -103,10 +103,10 @@ star.max_slew = 1; %%%%
 star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0;
 star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 degree per pixel
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 1;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0;
 star.LF_def_tau = 20;  %% assume 20 deg of fov default is at 1 deg/s
 
 
@@ -322,3 +322,35 @@ mag_torque.tanh_max = 30;
 mag_torque.tanh_gain = 63/28.6;
 %% current is input
 mag_torque.k = 0.005;
+
+
+
+%% sim stuff
+load('t_sim');
+load('p_dyn');
+load('cda');
+
+nRep = 10;
+
+t0 = t_sim(:);          % make sure it is column
+T  = t0(end);           % duration of one block, if time starts at 0
+
+t_rep = t0 + T*(0:nRep-1);
+t_sim_long = t_rep(:);
+
+p_dyn_long = repmat(p_dyn,nRep,1);
+
+cda_long = repmat(cda,nRep,1);
+
+%distance guess random
+r_offset = [1;1;5] * 1e-2; %% cm to meter
+%%assume drag in x
+
+drag = p_dyn_long .* cda_long;
+
+drag_simin = timeseries(drag, t_sim_long);
+
+% aero_torque = cross(drag,r_offset);
+
+tracking.kp = 0.5;
+tracking.kd = 2;
