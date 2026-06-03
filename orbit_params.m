@@ -1,6 +1,6 @@
 
 %%Constant
-altitude = 449e3;
+altitude = 279e3;
 
 earth.R = 6371e3;
 moon.R = 1740e3;
@@ -11,7 +11,7 @@ G = 6.674e-11;
 
 semi_major = earth.R + altitude;
 eccentricity = 0;
-inclination = 97.21;
+inclination = 96.6;
 RAAN = 34.9;
 periapsis_arg = 0;
 true_anomaly = 45;
@@ -33,9 +33,9 @@ NEO.mass = 230;
 NEO.inertia = [30.5, 0, 0; 0, 20, 0; 0, 0, 40.2];
 
 %initialise
-q_icrf2b_initial = [-0.38; -0.3; 0.87; -0.06];
+q_icrf2b_initial = [-0.38; -0.3; 0.8733; -0.06383];
 q_icrf2b_initial = q_icrf2b_initial/norm(q_icrf2b_initial);
-omega_icrf2b_initial = [0.08;-0.02;0.06] *0 ;
+omega_icrf2b_initial = [-0.3804;-0.2976;0.06] *0 ;
 
 
 %% times
@@ -84,7 +84,7 @@ star.y = cross(star.boresight_b,star.x)/norm(cross(star.boresight_b,star.x));
 
 star.dcm_b2star = [star.x';star.y';star.boresight_b'];
 
-star.sun_avoidance_angle_deg = 35 * 0.01;
+star.sun_avoidance_angle_deg = 35 * 0.001 ;
 star.earth_avoidance_angle_deg = 22;
 
 
@@ -104,9 +104,9 @@ star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
 star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1 ;
-star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 degree per pixel
+star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 sec per pixel
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0.1 ;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0 ;
 star.LF_def_tau = 20;  %% assume 20 deg of fov default is at 1 deg/s
 
 
@@ -279,7 +279,7 @@ wheel.distribution_matrix = 0.5 * [ 1/a, b/(b^2 + c^2),   0;
                                    -1/a, b/(b^2 + c^2),   0;
                                       0, c/(b^2 + c^2), 1/d;
                                       0, c/(b^2 + c^2),-1/d];
-wheel.max_speed = 8000 * 2 * pi/60; %% rad/s
+wheel.max_speed = 5200 * 2 * pi/60; %% rad/s
 wheel.max_torque_Nm = 37e-3;
 
 wheel.bias = 600; % rpm
@@ -352,8 +352,16 @@ drag_simin = timeseries(drag, t_sim_long);
 
 % aero_torque = cross(drag,r_offset);
 
-tracking.kp = 0.5;
-tracking.kd = 2;
+% tracking.kp = 0.5;
+% tracking.kd = 2;
+
+wn_tar = 0.1 * 2 * pi;
+tracking.kp = diag(NEO.inertia) * wn_tar^2;
+
+tracking.kd = wn_tar * 2 * 0.5 * diag(NEO.inertia);
+
+
+
 
 % regulation.kp = 0.2 ;
 % regulation_kp = 80;
@@ -375,29 +383,29 @@ n  = 1;
 [sos_adcs,g_adcs] = tf2sos(b,a);
 
 
-% A = [zeros(3), eye(3);
-%      zeros(3), zeros(3)];
-% 
-% B = [zeros(3);
-%      NEO.inertia \ eye(3)];
-% 
-% 
-% theta_max = deg2rad(1000 / 3600);     % acceptable attitude error, rad
-% omega_max = deg2rad(0.1);     % acceptable angular rate, rad/s
-% tau_max   = 5e-3;           % acceptable torque, Nm
-% 
-% Q = diag([1/theta_max^2, ...
-%           1/theta_max^2, ...
-%           1/theta_max^2, ...
-%           1/omega_max^2, ...
-%           1/omega_max^2, ...
-%           1/omega_max^2]);
-% 
-% R = diag([1/tau_max^2, ...
-%           1/tau_max^2, ...
-%           1/tau_max^2]);
-% 
-% [K,S,e] = lqr(A,B,Q,R);
+A = [zeros(3), eye(3);
+     zeros(3), zeros(3)];
+
+B = [zeros(3);
+     NEO.inertia \ eye(3)];
+
+
+theta_max = deg2rad(1000 / 3600);     % acceptable attitude error, rad
+omega_max = deg2rad(0.1);     % acceptable angular rate, rad/s
+tau_max   = 5e-3;           % acceptable torque, Nm
+
+Q = diag([1/theta_max^2, ...
+          1/theta_max^2, ...
+          1/theta_max^2, ...
+          1/omega_max^2, ...
+          1/omega_max^2, ...
+          1/omega_max^2]);
+
+R = diag([1/tau_max^2, ...
+          1/tau_max^2, ...
+          1/tau_max^2]);
+
+[K,S,e] = lqr(A,B,Q,R);
 % 
 % 
 % q1 = [0.7071 0 0 0.7071]; q1 = q1/norm(q1);
