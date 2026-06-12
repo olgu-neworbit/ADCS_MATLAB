@@ -50,7 +50,7 @@ Kalman.Ts = 0.1;
 %% gyro
 % gyro.Ts = 0.5;
 gyro.sigma_u = 4.6296e-6; %%4.6296e-06/2;  %% bias  both deg/s   using minimum reccomened value
-gyro.sigma_v = 0.0013; %1.3e-3;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_v = 0.0025; %1.3e-3;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 gyro.bias = [0.00,0.00,0.00]';
 
@@ -375,7 +375,7 @@ tracking.kd = wn_tar * 2 * 1 * diag(NEO.inertia);
 wn_tar = 0.1 * 2 * pi;
 regulation.kp = diag(NEO.inertia) * wn_tar^2;
 
-regulation.kd = wn_tar * 2 * 0.5 * diag(NEO.inertia);
+regulation.kd = wn_tar * 2 * 1 * diag(NEO.inertia);
 
 regulation_kp = regulation.kp;
 
