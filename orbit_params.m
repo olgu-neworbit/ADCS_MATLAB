@@ -41,7 +41,7 @@ omega_icrf2b_initial = [-0.3804;-0.2976;0.06] *0 ;
 %% times
 Ts = 0.1;
 gyro.Ts = 0.1;
-star.Ts = 1;
+star.Ts = 0.2;
 sun.Ts = 0.5;
 mag.Ts = 1;
 Kalman.Ts = 0.1;
@@ -49,8 +49,8 @@ Kalman.Ts = 0.1;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 4.6296e-06/2;  %% bias  both deg/s   using minimum reccomened value
-gyro.sigma_v = 1.3e-3;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 4.6296e-6; %%4.6296e-06/2;  %% bias  both deg/s   using minimum reccomened value
+gyro.sigma_v = 0.0013; %1.3e-3;  %%% this is standard deviation be careful  %% noise
 gyro.seed  = 2134;
 gyro.bias = [0.00,0.00,0.00]';
 
@@ -58,7 +58,7 @@ gyro2 = gyro;
 gyro2.seed = 2135;
 
 %%%%
-gyro.fixed_bias = (1e-3) * 1; %%%% fixed bias radians
+gyro.fixed_bias = (1e-3) * 1 * 0; %%%% fixed bias radians
 gyro.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 gyro.fixed_bias_vector = (gyro.fixed_bias_vector)/norm(gyro.fixed_bias_vector) * gyro.fixed_bias ;
 
@@ -75,7 +75,7 @@ gyro2.fixed_bias_vector = (gyro2.fixed_bias_vector)/norm(gyro2.fixed_bias_vector
 %% star tracker
 
 %ref frame https://www.mdpi.com/1424-8220/18/9/3106 % z along the boresign
-star.boresight_b = [1;1;-1];  %% z
+star.boresight_b = [1;1;1];  %% z
 
 star.boresight_b = star.boresight_b/norm(star.boresight_b);
 
@@ -91,9 +91,9 @@ star.earth_avoidance_angle_deg = 22;
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
 star.sigma_bore = 70/3 ;  %% 15  
-star.sigma_cross = 11/3  ; %%% arcsec sigma ... 3
+star.sigma_cross = 11/3; %%% arcsec sigma ... 3
 
-star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 0.1  ; %%%% fixed bias    such a hihgh fixed bisa
+star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 0.1 * 0  ; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
 star.fixed_bias_vector = (star.fixed_bias_vector)/norm(star.fixed_bias_vector);
 
@@ -103,7 +103,7 @@ star.max_slew = 1; %%%%
 star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1 ;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0 ;
 star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 sec per pixel
 
 star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0 ;
@@ -204,8 +204,8 @@ sigma_u_rad  = gyro.sigma_u * pi/180 /sqrt(2);         % deg/s/√s → rad/s/�
 variance = sigma_st_rad * sigma_v_rad * sqrt(Kalman.Ts) * ...
            sqrt(1 + (1e-9 * sigma_u_rad * sigma_st_rad / sigma_v_rad^3) * sqrt(Kalman.Ts));
 
-sigma_theta_rad    = sqrt(variance);
-sigma_theta_arcsec = sigma_theta_rad * 180/pi * 3600
+% sigma_theta_rad    = sqrt(variance);
+% sigma_theta_arcsec = sigma_theta_rad * 180/pi * 3600
 
 
 
@@ -243,19 +243,19 @@ sqrt((P_sigma_sigma(2,2))) * 180/pi * 3600;
 sqrt((P_sigma_sigma(3,3))) * 180/pi * 3600;
 
 
-a = 3;
-Su = sigma_u_rad * (Kalman.Ts)^1.5 /sqrt((P_sigma_sigma(a,a)));
-Sv = sigma_v_rad * (Kalman.Ts)^0.5 / sqrt((P_sigma_sigma(a,a)));
-Se = 0;
-
-gamma = sqrt(1 + Se^2 + 0.25 * Sv^2 + 1/48 * Su^2);
-si = gamma + 0.25 * Su + 1/2 * sqrt( 2 * gamma * Su + Sv^2 + 1/3 * Su^2);
-sigma_theta_rad_2 = sqrt((P_sigma_sigma(a,a))) * sqrt(1 - si^-2);
-sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
-
-
-sigma_theta_rad_3 = sqrt((P_sigma_sigma(a,a))) * sqrt(-1 + si^2);
-sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
+% a = 3;
+% Su = sigma_u_rad * (Kalman.Ts)^1.5 /sqrt((P_sigma_sigma(a,a)));
+% Sv = sigma_v_rad * (Kalman.Ts)^0.5 / sqrt((P_sigma_sigma(a,a)));
+% Se = 0;
+% 
+% gamma = sqrt(1 + Se^2 + 0.25 * Sv^2 + 1/48 * Su^2);
+% si = gamma + 0.25 * Su + 1/2 * sqrt( 2 * gamma * Su + Sv^2 + 1/3 * Su^2);
+% sigma_theta_rad_2 = sqrt((P_sigma_sigma(a,a))) * sqrt(1 - si^-2);
+% sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
+% 
+% 
+% sigma_theta_rad_3 = sqrt((P_sigma_sigma(a,a))) * sqrt(-1 + si^2);
+% sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
 
 
 %%%% look at CW5000 of cubespace
@@ -265,13 +265,16 @@ wheel.I_II = wheel.rated_momentum_mNms / 1000 / wheel.speed_at_rated_momentum_ra
 
 wheel.I = blkdiag(wheel.I_II /10,wheel.I_II /10, wheel.I_II );
 
-a = sqrt(2/3);
+% a = sqrt(2/3);
+a = cosd(26.5);
 d = a ;
 b = sqrt(1 - a^2);
 c = sqrt(1 - d^2);
 wheel.axes = [a,-a, 0, 0;
               b, b, c, c;
               0, 0, d,-d];
+
+
 
 
 %%% multiply by desired body moment or torque
@@ -282,8 +285,8 @@ wheel.distribution_matrix = 0.5 * [ 1/a, b/(b^2 + c^2),   0;
 wheel.max_speed = 5200 * 2 * pi/60; %% rad/s
 wheel.max_torque_Nm = 37e-3;
 
-wheel.bias = 600; % rpm
-wheel.omega_initial =  [wheel.bias,wheel.bias, wheel.bias, wheel.bias] * 2 * pi/60;
+wheel.bias = 2500; % rpm
+wheel.omega_initial =  [wheel.bias,wheel.bias, -wheel.bias, -wheel.bias] * 2 * pi/60;
 wheel.tau = 0.5; %% seconds
 
 % desired h default
@@ -358,7 +361,7 @@ drag_simin = timeseries(drag, t_sim_long);
 wn_tar = 0.1 * 2 * pi;
 tracking.kp = diag(NEO.inertia) * wn_tar^2;
 
-tracking.kd = wn_tar * 2 * 0.5 * diag(NEO.inertia);
+tracking.kd = wn_tar * 2 * 1 * diag(NEO.inertia);
 
 
 
