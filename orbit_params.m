@@ -103,10 +103,10 @@ star.max_slew = 1; %%%%
 star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0 ;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1 ;
 star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 sec per pixel
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0 ;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 1 ;
 star.LF_def_tau = 20;  %% assume 20 deg of fov default is at 1 deg/s
 
 
