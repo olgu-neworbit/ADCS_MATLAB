@@ -49,10 +49,15 @@ Kalman.Ts = 0.1;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 4.6296e-6; %%4.6296e-06/2;  %% bias  both deg/s   using minimum reccomened value
-gyro.sigma_v = 0.0025; %1.3e-3;  %%% this is standard deviation be careful  %% noise
+gyro.sigma_u = 4.6296e-6; %%;  %% bias  both deg/s   using minimum reccomened value
+gyro.sigma_v = 0.0013; %1.3e-3;  %%% this is standard deviation be careful  %% noise
+
+gyro.sigma_bias = 3 / 3600 * 1;  %% hour to sec
+gyro.time_bias = 500;
+
+
 gyro.seed  = 2134;
-gyro.bias = [0.00,0.00,0.00]';
+gyro.bias = [0.10,0.00,0.00]';
 
 gyro2 = gyro;
 gyro2.seed = 2135;
@@ -90,8 +95,8 @@ star.earth_avoidance_angle_deg = 22;
 
 %%% random noise expected values semi optimistic. Dependant on slew : x2
 %%% per deg/s of slew cross and x3 deg/s for about boresight
-star.sigma_bore = 70/3 ;  %% 15  
-star.sigma_cross = 11/3; %%% arcsec sigma ... 3
+star.sigma_bore = 175/3 ;  %% 
+star.sigma_cross = 35/3; %%% 
 
 star.fixed_bias = (0.017 * 3600 * 0.1 + 3 * 1.5) * 0.1 * 0  ; %%%% fixed bias    such a hihgh fixed bisa
 star.fixed_bias_vector = ((rand(3,1)) - 0.5) * 2;
@@ -103,10 +108,10 @@ star.max_slew = 1; %%%%
 star.seed = randi([1,1000]);
 star_Ts = star.Ts;
 
-star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 1 ;
+star.HF_sigma = [6.6; 6.6; 28]/3 /3600 * pi/180 * 0 ;
 star.HF_def_tau = 0.0195; %%% def tau tau at 1 deg /sec total slew assume 1024 pixels so 0.0195 sec per pixel
 
-star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 1 ;
+star.LF_sigma = [9,9,51]/3 /3600 * pi/180 * 0 ;
 star.LF_def_tau = 20;  %% assume 20 deg of fov default is at 1 deg/s
 
 
@@ -188,7 +193,7 @@ mag.R_k = eye(3) * mag.sigma^2;
 q_initial = q_icrf2b_initial;
 x_initial = zeros(6,1); 
 
-P_initial = blkdiag(eye(3) * gyro.sigma_v^2 * 1e4 ,eye(3) * gyro.sigma_u^2 * 1e5);  %% initial state estiatme covar
+P_initial = blkdiag(eye(3) * gyro.sigma_v^2 * 1e4 ,eye(3) * gyro.sigma_u^2 * 1e7);  %% initial state estiatme covar
 
 Q_c = blkdiag(eye(3) * gyro.sigma_v^2/2 ,eye(3) * gyro.sigma_u^2/2 );  %% process noise covar not used anymore
 
@@ -216,12 +221,12 @@ Se = 0;
 
 gamma = sqrt(1 + Se^2 + 0.25 * Sv^2 + 1/48 * Su^2);
 si = gamma + 0.25 * Su + 1/2 * sqrt( 2 * gamma * Su + Sv^2 + 1/3 * Su^2);
-sigma_theta_rad_2 = sigma_st_rad * sqrt(1 - si^-2);
-sigma_theta_arcsec_2 = sigma_theta_rad_2 * 180/pi * 3600
 
+sigma_theta_rad_post = sigma_st_rad * sqrt(1 - si^-2);
+sigma_theta_arcsec_post = sigma_theta_rad_post * 180/pi * 3600
 
-sigma_theta_rad_3 = sigma_st_rad * sqrt(-1 + si^2);
-sigma_theta_arcsec_3 = sigma_theta_rad_3 * 180/pi * 3600
+sigma_theta_rad_pre = sigma_st_rad * sqrt(-1 + si^2);
+sigma_theta_arcsec_pre = sigma_theta_rad_pre * 180/pi * 3600
 
 
 
@@ -324,7 +329,7 @@ mag_torque.I_max = mag_torque.V_max/mag_torque.res;
 mag_torque.tanh_max = 30;
 mag_torque.tanh_gain = 63/28.6;
 %% current is input
-mag_torque.k = 0.005;
+mag_torque.k = 0.02;
 
 
 
