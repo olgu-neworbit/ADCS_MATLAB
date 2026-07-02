@@ -49,7 +49,7 @@ Kalman.Ts = 0.1;
 
 %% gyro
 % gyro.Ts = 0.5;
-gyro.sigma_u = 4.6296e-6; %%;  %% bias  both deg/s   using minimum reccomened value
+gyro.sigma_u = 4.6296e-5; %%;  %% bias  both deg/s   using minimum reccomened value
 gyro.sigma_v = 0.0013; %1.3e-3;  %%% this is standard deviation be careful  %% noise
 
 gyro.sigma_bias = 3 / 3600 * 1;  %% hour to sec

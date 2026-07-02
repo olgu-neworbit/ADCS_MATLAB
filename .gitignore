@@ -38,3 +38,13 @@ codegen/
 # SimBiology backup files
 *.sbproj.backup
 *.sbproj.bak
+*.d2s2
+MEKF-main/
+*.xml
+Worst case estimates for reaction wheel sizing.docx
+Worst case estimates for reaction wheel sizing.pdf
+*.original
+T.txt
+RPMRate.txt
+RPMT.txt
+F.txt
